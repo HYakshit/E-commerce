@@ -95,9 +95,9 @@ require_once 'includes/header.php';
             <h2 class="fw-bold">Shop by Category</h2>
             <div class="border-bottom border-3 border-primary mx-auto" style="width: 50px;"></div>
         </div>
-        <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class=" owl-carousel">
             <?php foreach ($categories as $category): ?>
-            <div class="col">
+            <div class="">
                 <a href="products.php?category=<?php echo $category['id']; ?>" class="text-decoration-none">
                     <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden">
                         <img src="<?php echo !empty($category['image']) ? htmlspecialchars($category['image']) : 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0'; ?>"
@@ -129,9 +129,10 @@ require_once 'includes/header.php';
                     <div class="position-absolute end-0 top-0 p-2">
                         <span class="badge bg-danger">New</span>
                     </div>
-                    <img src="<?php echo htmlspecialchars($product['image']); ?>" class="card-img-top"
-                        alt="<?php echo htmlspecialchars($product['name']); ?>"
-                        style="height: 200px; object-fit: cover;">
+                    <a href="product-details.php?id=<?php echo $product['id']; ?>">
+                        <img src="<?php echo htmlspecialchars($product['image']); ?>" class="card-img-top"
+                            alt="<?php echo htmlspecialchars($product['name']); ?>"
+                            style="height: 200px; object-fit: cover;"></a>
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-baseline mb-2">
                             <small class="text-muted">

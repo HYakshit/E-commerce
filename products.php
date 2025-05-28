@@ -86,73 +86,82 @@ require_once 'includes/header.php';
     <div class="container">
         <div class="row">
             <!-- Sidebar Filters -->
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-3 mt-2">
                 <div class="search-filters">
                     <h3 class="filters-title">Filters</h3>
                     <form action="products.php" method="GET">
-                        <?php 
+                        <?php
                         // Preserve other query parameters
                         foreach ($_GET as $key => $value) {
                             if (!in_array($key, ['category', 'min_price', 'max_price'])) {
                                 echo '<input type="hidden" name="' . htmlspecialchars($key) . '" value="' . htmlspecialchars($value) . '">';
                             }
-                        } 
+                        }
                         ?>
-                        
+
                         <div class="filter-group">
                             <label class="filter-label">Category</label>
                             <select name="category" class="form-control">
                                 <option value="">All Categories</option>
                                 <?php foreach ($categories as $category): ?>
-                                <option value="<?php echo $category['id']; ?>" <?php echo (isset($_GET['category']) && $_GET['category'] == $category['id']) ? 'selected' : ''; ?>>
+                                <option value="<?php echo $category['id']; ?>"
+                                    <?php echo (isset($_GET['category']) && $_GET['category'] == $category['id']) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($category['name']); ?>
                                 </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        
+
                         <div class="filter-group">
                             <label class="filter-label">Price Range</label>
                             <div class="price-range">
-                                <input type="number" name="min_price" class="form-control" placeholder="Min" value="<?php echo isset($_GET['min_price']) ? htmlspecialchars($_GET['min_price']) : ''; ?>">
-                                <input type="number" name="max_price" class="form-control" placeholder="Max" value="<?php echo isset($_GET['max_price']) ? htmlspecialchars($_GET['max_price']) : ''; ?>">
+                                <input type="number" name="min_price" class="form-control" placeholder="Min"
+                                    value="<?php echo isset($_GET['min_price']) ? htmlspecialchars($_GET['min_price']) : ''; ?>">
+                                <input type="number" name="max_price" class="form-control" placeholder="Max"
+                                    value="<?php echo isset($_GET['max_price']) ? htmlspecialchars($_GET['max_price']) : ''; ?>">
                             </div>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
                     </form>
                 </div>
             </div>
-            
+
             <!-- Products Grid -->
             <div class="col-12 col-md-9">
-                <div class="products-header">
+                <div class="products-header mb-2">
                     <h2><?php echo $page_title; ?></h2>
                     <div class="products-sorting">
                         <label>Sort by:</label>
                         <select id="sort-products" class="form-control">
                             <option value="newest" <?php echo $sort == 'newest' ? 'selected' : ''; ?>>Newest</option>
                             <option value="oldest" <?php echo $sort == 'oldest' ? 'selected' : ''; ?>>Oldest</option>
-                            <option value="price_low" <?php echo $sort == 'price_low' ? 'selected' : ''; ?>>Price: Low to High</option>
-                            <option value="price_high" <?php echo $sort == 'price_high' ? 'selected' : ''; ?>>Price: High to Low</option>
+                            <option value="price_low" <?php echo $sort == 'price_low' ? 'selected' : ''; ?>>Price: Low
+                                to High</option>
+                            <option value="price_high" <?php echo $sort == 'price_high' ? 'selected' : ''; ?>>Price:
+                                High to Low</option>
                         </select>
                     </div>
                 </div>
-                
+
                 <?php if (count($products) > 0): ?>
                 <div class="products-grid">
                     <?php foreach ($products as $product): ?>
+
                     <div class="product-card">
-                        <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-img">
+                        <a href="product-details.php?id=<?php echo $product['id']; ?>" class="view-details">
+                            <img src="<?php echo htmlspecialchars($product['image']); ?>"
+                                alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-img"> </a>
                         <div class="product-info">
                             <h3 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h3>
                             <div class="product-category">
-                                <?php 
-                                $cat_stmt = $conn->prepare("SELECT name FROM categories WHERE id = ?");
-                                $cat_stmt->execute([$product['category_id']]);
-                                $category = $cat_stmt->fetch();
-                                echo htmlspecialchars($category['name'] ?? 'Uncategorized'); 
-                                ?>
+                                <?php
+                                        $cat_stmt = $conn
+                                            ->prepare("SELECT name FROM categories WHERE id = ?");
+                                        $cat_stmt->execute([$product['category_id']]);
+                                        $category = $cat_stmt->fetch();
+                                        echo htmlspecialchars($category['name'] ?? 'Uncategorized');
+                                        ?>
                             </div>
                             <div class="product-price"><?php echo formatPrice($product['price']); ?></div>
                         </div>
@@ -161,18 +170,23 @@ require_once 'includes/header.php';
                                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                 <input type="hidden" name="action" value="add_to_cart">
                                 <button type="submit" class="btn btn-primary btn-sm btn-block">Add to Cart</button>
+                                <div class="text-center mt-1"> <a
+                                        href="product-details.php?id=<?php echo $product['id']; ?>"
+                                        class="btn btn-outline-secondary">View
+                                        details</a></div>
                             </form>
-                            <a href="product-details.php?id=<?php echo $product['id']; ?>" class="view-details">View Details</a>
+
                         </div>
                     </div>
+
                     <?php endforeach; ?>
                 </div>
-                
+
                 <!-- Pagination -->
                 <div class="pagination">
                     <?php echo generatePaginationLinks($page, $total_pages, $base_url); ?>
                 </div>
-                
+
                 <?php else: ?>
                 <div class="no-products">
                     <p>No products found matching your criteria. Please try different filters.</p>

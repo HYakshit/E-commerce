@@ -214,19 +214,26 @@ require_once 'includes/header.php';
                     <div class="checkout-section">
                         <h3 class="checkout-section-title">Shipping Information</h3>
 
-                        <?php if (!empty($addresses)): ?>
-                        <div class="saved-addresses">
+                        <?php if (!empty($addresses)):
+                            //     echo "
+                            // <pre>";
+                            //     print_r($addresses);
+                            //     exit;
+                        ?>
+
+
+                        <dipv class="saved-addresses">
                             <label>Use a saved address:</label>
                             <select id="saved-address" class="form-control">
                                 <option value="">Enter new address</option>
                                 <?php foreach ($addresses as $address): ?>
-                                <option value="<?php echo $address['id']; ?>">
-                                    <?php echo htmlspecialchars($address['address'] . ', ' . $address['city'] . ', ' . $address['state']); ?>
+                                <option value="<?php echo $address['phone']; ?>">
+                                    <?php echo ($address['address'] . ', ' . $address['city'] . ', ' . $address['state']); ?>
 
                                 </option>
                                 <?php endforeach; ?>
                             </select>
-                        </div>
+                        </dipv>
                         <?php endif; ?>
 
                         <div class="row">
@@ -613,14 +620,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const addressId = this.value;
 
             if (addressId) {
+
                 // Here you'd normally fetch the address data via AJAX
                 // For this example, we'll use dummy data
                 const addresses = <?php echo json_encode($addresses); ?>;
-                const selectedAddress = addresses.find(addr => addr.id == addressId);
+                // console.log(selectedAddress);
+                const selectedAddress = addresses.find(addr => addr.phone == addressId);
 
                 if (selectedAddress) {
-                    document.getElementById('first_name').value = selectedAddress.first_name || '';
-                    document.getElementById('last_name').value = selectedAddress.last_name || '';
+                    console.log(selectedAddress);
+                    document.getElementById('first_name').value = selectedAddress.first_name ||
+                        '';
+                    document.getElementById('last_name').value = selectedAddress.last_name ||
+                        '';
                     document.getElementById('address').value = selectedAddress.address || '';
                     document.getElementById('address2').value = selectedAddress.address2 || '';
                     document.getElementById('city').value = selectedAddress.city || '';

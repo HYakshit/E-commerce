@@ -72,28 +72,25 @@ require_once 'includes/header.php';
 <section class="products-page">
     <div class="container">
         <div class="row">
-            <!-- Sidebar Category Buttons -->
-            <div class="col-12 col-md-3">
-                <div class="search-filters">
-                    <h3 class="filters-title">Categories</h3>
-                    <div class="category-buttons">
-                        <a href="categories.php"
-                            class="btn btn-block <?php echo empty($_GET['category']) ? 'btn-primary' : 'btn-outline'; ?>">All
-                            Categories</a>
-                        <?php foreach ($categories as $category): ?>
-                        <a href="categories.php?category=<?php echo $category['id']; ?>"
-                            class="btn btn-block <?php echo (isset($_GET['category']) && $_GET['category'] == $category['id']) ? 'btn-primary' : 'btn-outline'; ?>">
-                            <?php echo htmlspecialchars($category['name']); ?>
-                        </a>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
 
             <!-- Products Grid -->
             <div class="col-12 col-md-9">
                 <div class="products-header">
                     <h2><?php echo $page_title; ?></h2>
+                    <div class="list-group">
+                        <a href="categories.php"
+                            class="list-group-item bg-warning list-group-item-action <?php echo empty($_GET['category']) ? 'active' : ''; ?>">
+                            Show All Categories
+                        </a>
+                        <?php foreach ($categories as $category): ?>
+                        <a href="categories.php?category=<?php echo $category['id']; ?>"
+                            class="list-group-item list-group-item-action d-flex  align-items-center gap-3 <?php echo (isset($_GET['category']) && $_GET['category'] == $category['id']) ? 'active' : ''; ?>">
+                            <img src="<?php echo !empty($category['image']) ? htmlspecialchars($category['image']) : 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0'; ?>"
+                                style="width: 40px; height: 40px; object-fit: cover; border-radius: 5px;">
+                            <span><?php echo htmlspecialchars($category['name']); ?></span>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
                     <div class="products-sorting">
                         <label>Sort by:</label>
                         <select id="sort-products" class="form-control">
@@ -108,20 +105,22 @@ require_once 'includes/header.php';
                 </div>
 
                 <?php if (count($products) > 0): ?>
-                <div class="products-grid">
+                <div class="products-grid mt-2">
                     <?php foreach ($products as $product): ?>
                     <div class="product-card">
-                        <img src="<?php echo htmlspecialchars($product['image']); ?>"
-                            alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-img">
+                        <a href="product-details.php?id=<?php echo $product['id']; ?>" class="view-details">
+                            <img src="<?php echo htmlspecialchars($product['image']); ?>"
+                                alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-img"> </a>
                         <div class="product-info">
                             <h3 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h3>
                             <div class="product-category">
-                                <?php 
-                                $cat_stmt = $conn->prepare("SELECT name FROM categories WHERE id = ?");
-                                $cat_stmt->execute([$product['category_id']]);
-                                $category = $cat_stmt->fetch();
-                                echo htmlspecialchars($category['name'] ?? 'Uncategorized'); 
-                                ?>
+                                <?php
+                                        $cat_stmt = $conn
+                                            ->prepare("SELECT name FROM categories WHERE id = ?");
+                                        $cat_stmt->execute([$product['category_id']]);
+                                        $category = $cat_stmt->fetch();
+                                        echo htmlspecialchars($category['name'] ?? 'Uncategorized');
+                                        ?>
                             </div>
                             <div class="product-price"><?php echo formatPrice($product['price']); ?></div>
                         </div>
@@ -130,9 +129,12 @@ require_once 'includes/header.php';
                                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                 <input type="hidden" name="action" value="add_to_cart">
                                 <button type="submit" class="btn btn-primary btn-sm btn-block">Add to Cart</button>
+                                <div class="text-center mt-1"> <a
+                                        href="product-details.php?id=<?php echo $product['id']; ?>"
+                                        class="btn btn-outline-secondary">View
+                                        details</a></div>
                             </form>
-                            <a href="product-details.php?id=<?php echo $product['id']; ?>" class="view-details">View
-                                Details</a>
+
                         </div>
                     </div>
                     <?php endforeach; ?>

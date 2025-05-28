@@ -25,9 +25,8 @@ function getCurrentUserId()
 // Format price with currency symbol
 function formatPrice($price)
 {
-    return '$' . number_format($price, 2);
+    return '₹' . number_format($price, 2);
 }
-
 // Sanitize input
 function sanitizeInput($data)
 {
