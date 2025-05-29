@@ -38,29 +38,49 @@
             </form>
 
             <div class="d-flex align-items-center">
+
+
+                <?php if (isLoggedIn()): ?>
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <span class="nav-link">Hii <?php echo $_SESSION['name']; ?></span>
+
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="/account.php">My Account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/orders.php">My Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="logout.php">Logout</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/index.php">Admin</a>
+                    </li>
+                </ul>
                 <a href="/cart.php" class="position-relative me-3">
                     <i class="fas fa-shopping-cart fs-5"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                         <?php echo getCartItemCount(); ?>
                     </span>
                 </a>
-
-                <?php if (isLoggedIn()): ?>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user me-1"></i>
-                        <span><?php echo $_SESSION['name']; ?></span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="/account.php">My Account</a></li>
-                        <li><a class="dropdown-item" href="/orders.php">My Orders</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a class="dropdown-item" href="#" id="logout-btn">Logout</a></li>
-                    </ul>
-                </div>
+                <!-- <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user me-1"></i>
+                            <span><?php echo $_SESSION['name']; ?></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="/account.php">My Account</a></li>
+                            <li><a class="dropdown-item" href="/orders.php">My Orders</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" id="logout-btn">Logout</a></li>
+                        </ul>
+                    </div> -->
                 <?php else: ?>
                 <div class="ms-2">
                     <a href="/login.php" class="btn btn-outline-primary me-2">Login</a>

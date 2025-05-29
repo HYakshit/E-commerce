@@ -1,9 +1,10 @@
     <?php
     // ... (your existing code above)
+
+    require_once 'includes/db_connect.php';
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    require_once 'includes/db_connect.php';
     // Function to get all orders for a user
     function getUserOrders($conn, $user_id)
     {
@@ -92,6 +93,8 @@
                         <?php if ($order['status'] == 'pending'): ?>
                         <a href="?cancel=<?= $order['id'] ?>" class="btn btn-danger btn-sm"
                             onclick="return confirm('Cancel this order?')">Cancel</a>
+                        <?php elseif ($order['status'] == 'cancelled'): ?>
+                        <span class="text-muted danger">Order Cancelled</span>
                         <?php else: ?>
                         <span class="text-muted">No Action</span>
                         <?php endif; ?>

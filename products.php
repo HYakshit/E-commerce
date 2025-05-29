@@ -104,10 +104,10 @@ require_once 'includes/header.php';
                             <select name="category" class="form-control">
                                 <option value="">All Categories</option>
                                 <?php foreach ($categories as $category): ?>
-                                <option value="<?php echo $category['id']; ?>"
-                                    <?php echo (isset($_GET['category']) && $_GET['category'] == $category['id']) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($category['name']); ?>
-                                </option>
+                                    <option value="<?php echo $category['id']; ?>"
+                                        <?php echo (isset($_GET['category']) && $_GET['category'] == $category['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -145,53 +145,53 @@ require_once 'includes/header.php';
                 </div>
 
                 <?php if (count($products) > 0): ?>
-                <div class="products-grid">
-                    <?php foreach ($products as $product): ?>
+                    <div class="products-grid">
+                        <?php foreach ($products as $product): ?>
 
-                    <div class="product-card">
-                        <a href="product-details.php?id=<?php echo $product['id']; ?>" class="view-details">
-                            <img src="<?php echo htmlspecialchars($product['image']); ?>"
-                                alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-img"> </a>
-                        <div class="product-info">
-                            <h3 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h3>
-                            <div class="product-category">
-                                <?php
+                            <div class="product-card">
+                                <a href="product-details.php?id=<?php echo $product['id']; ?>" class="view-details">
+                                    <img src="<?php echo htmlspecialchars($product['image']); ?>"
+                                        alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-img"> </a>
+                                <div class="product-info">
+                                    <h3 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h3>
+                                    <div class="product-category">
+                                        <?php
                                         $cat_stmt = $conn
                                             ->prepare("SELECT name FROM categories WHERE id = ?");
                                         $cat_stmt->execute([$product['category_id']]);
                                         $category = $cat_stmt->fetch();
                                         echo htmlspecialchars($category['name'] ?? 'Uncategorized');
                                         ?>
-                            </div>
-                            <div class="product-price"><?php echo formatPrice($product['price']); ?></div>
-                        </div>
-                        <div class="product-footer">
-                            <form action="cart.php" method="POST" class="add-to-cart">
-                                <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
-                                <input type="hidden" name="action" value="add_to_cart">
-                                <button type="submit" class="btn btn-primary btn-sm btn-block">Add to Cart</button>
-                                <div class="text-center mt-1"> <a
-                                        href="product-details.php?id=<?php echo $product['id']; ?>"
-                                        class="btn btn-outline-secondary">View
-                                        details</a></div>
-                            </form>
+                                    </div>
+                                    <div class="product-price"><?php echo formatPrice($product['price']); ?></div>
+                                </div>
+                                <div class="product-footer">
+                                    <form action="cart.php" method="POST" class="add-to-cart">
+                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                        <input type="hidden" name="action" value="add_to_cart">
+                                        <button type="submit" class="btn btn-primary btn-sm btn-block">Add to Cart</button>
+                                        <div class="text-center mt-1"> <a
+                                                href="product-details.php?id=<?php echo $product['id']; ?>"
+                                                class="btn btn-outline-secondary">View
+                                                details</a></div>
+                                    </form>
 
-                        </div>
+                                </div>
+                            </div>
+
+                        <?php endforeach; ?>
                     </div>
 
-                    <?php endforeach; ?>
-                </div>
-
-                <!-- Pagination -->
-                <div class="pagination">
-                    <?php echo generatePaginationLinks($page, $total_pages, $base_url); ?>
-                </div>
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <?php echo generatePaginationLinks($page, $total_pages, $base_url); ?>
+                    </div>
 
                 <?php else: ?>
-                <div class="no-products">
-                    <p>No products found matching your criteria. Please try different filters.</p>
-                    <a href="products.php" class="btn btn-outline">Clear Filters</a>
-                </div>
+                    <div class="no-products">
+                        <p>No products found matching your criteria. Please try different filters.</p>
+                        <a href="products.php" class="btn btn-outline">Clear Filters</a>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -199,17 +199,17 @@ require_once 'includes/header.php';
 </section>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle sort change
-    const sortSelect = document.getElementById('sort-products');
-    if (sortSelect) {
-        sortSelect.addEventListener('change', function() {
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('sort', this.value);
-            window.location.href = currentUrl.toString();
-        });
-    }
-});
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle sort change
+        const sortSelect = document.getElementById('sort-products');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function() {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('sort', this.value);
+                window.location.href = currentUrl.toString();
+            });
+        }
+    });
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
