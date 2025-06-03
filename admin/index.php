@@ -22,12 +22,12 @@ $stmt->execute();
 $total_orders = $stmt->fetchColumn();
 
 // Total revenue
-$stmt = $conn->prepare("SELECT SUM(total) FROM orders");
+$stmt = $conn->prepare("SELECT SUM(total) FROM orders WHERE status NOT IN ('cancelled', 'refunded')");
 $stmt->execute();
 $total_revenue = $stmt->fetchColumn();
 
 // Total customers
-$stmt = $conn->prepare("SELECT COUNT(*) FROM users");
+$stmt = $conn->prepare("SELECT COUNT(*) FROM users where is_admin = 0");
 $stmt->execute();
 $total_customers = $stmt->fetchColumn();
 
@@ -48,71 +48,48 @@ $stmt = $conn->prepare("SELECT * FROM products WHERE stock_quantity <= 5 ORDER B
 $stmt->execute();
 $low_stock_products = $stmt->fetchAll();
 
+// Get daily sales data for the last 30 days
+$stmt = $conn->prepare("
+    SELECT DATE(created_at) as date, 
+           COUNT(*) as order_count,
+           SUM(total) as daily_sales
+    FROM orders 
+    WHERE created_at >= ? 
+    AND status NOT IN ('cancelled', 'refunded')
+    GROUP BY DATE(created_at)
+    ORDER BY date ASC
+");
+$stmt->execute([$last_30_days]);
+$sales_data = $stmt->fetchAll();
+
+// Get top categories by sales
+$stmt = $conn->prepare("
+    SELECT c.name, 
+           COUNT(DISTINCT o.id) as order_count,
+           SUM(oi.quantity) as items_sold
+    FROM categories c
+    JOIN products p ON p.category_id = c.id
+    JOIN order_items oi ON oi.product_id = p.id
+    JOIN orders o ON o.id = oi.order_id
+    WHERE o.status NOT IN ('cancelled', 'refunded')
+    GROUP BY c.id, c.name
+    ORDER BY items_sold DESC
+    LIMIT 5
+");
+$stmt->execute();
+$category_data = $stmt->fetchAll();
+// echo"<pre>";
+// print_r($category_data);
+// echo"</pre>";
+// exit;
+
 require_once '../includes/header.php';
 ?>
 
 <div class="admin-container">
     <!-- Admin Sidebar -->
-    <aside class="admin-sidebar" id="admin-sidebar">
-        <div class="admin-logo">
-            <img src="/assets/logo.svg" alt="ShopNow Admin">
-            <span>ShopNow Admin</span>
-        </div>
+   <?php  require_once './includes/sidebar.php'; ?>
 
-        <div class="admin-menu">
-            <p class="admin-menu-category">Main</p>
-            <ul class="admin-menu-list">
-                <li class="admin-menu-item">
-                    <a href="/admin/index.php" class="admin-menu-link active">
-                        <i class="fas fa-tachometer-alt admin-menu-icon"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="admin-menu-item">
-                    <a href="/admin/orders.php" class="admin-menu-link">
-                        <i class="fas fa-shopping-cart admin-menu-icon"></i>
-                        <span>Orders</span>
-                    </a>
-                </li>
-            </ul>
-
-            <p class="admin-menu-category">Catalog</p>
-            <ul class="admin-menu-list">
-                <li class="admin-menu-item">
-                    <a href="/admin/products.php" class="admin-menu-link">
-                        <i class="fas fa-box admin-menu-icon"></i>
-                        <span>Products</span>
-                    </a>
-                </li>
-                <li class="admin-menu-item">
-                    <a href="/admin/categories.php" class="admin-menu-link">
-                        <i class="fas fa-tags admin-menu-icon"></i>
-                        <span>Categories</span>
-                    </a>
-                </li>
-            </ul>
-
-            <p class="admin-menu-category">Users</p>
-            <ul class="admin-menu-list">
-                <li class="admin-menu-item">
-                    <a href="/admin/customers.php" class="admin-menu-link">
-                        <i class="fas fa-users admin-menu-icon"></i>
-                        <span>Customers</span>
-                    </a>
-                </li>
-            </ul>
-
-            <p class="admin-menu-category">Settings</p>
-            <ul class="admin-menu-list">
-                <li class="admin-menu-item">
-                    <a href="/admin/settings.php" class="admin-menu-link">
-                        <i class="fas fa-cog admin-menu-icon"></i>
-                        <span>General Settings</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </aside>
 
     <!-- Admin Content -->
     <div class="admin-content" id="admin-content">
@@ -319,12 +296,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize charts if Chart.js is available
     if (typeof Chart !== 'undefined') {
-        // Sample data for charts (would be replaced with real data from backend)
+        // Sales data from PHP backend
         const salesData = {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            labels: <?php 
+                $dates = array_map(function($row) {
+                    return date('M d', strtotime($row['date']));
+                }, $sales_data);
+                echo json_encode($dates);
+            ?>,
             datasets: [{
-                label: 'Sales',
-                data: [12, 19, 3, 5, 2, 3, 20, 33, 23, 12, 33, 10],
+                label: 'Daily Sales',
+                data: <?php 
+                    $amounts = array_map(function($row) {
+                        return $row['daily_sales'];
+                    }, $sales_data);
+                    echo json_encode($amounts);
+                ?>,
                 borderColor: '#4a6cf7',
                 backgroundColor: 'rgba(74, 108, 247, 0.1)',
                 tension: 0.3,
@@ -333,9 +320,19 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         const categoryData = {
-            labels: ['Electronics', 'Clothing', 'Books', 'Home', 'Sports'],
+            labels: <?php 
+                $cat_names = array_map(function($row) {
+                    return $row['name'];
+                }, $category_data);
+                echo json_encode($cat_names);
+            ?>,
             datasets: [{
-                data: [30, 25, 15, 20, 10],
+                data: <?php 
+                    $cat_sales = array_map(function($row) {
+                        return $row['items_sold'];
+                    }, $category_data);
+                    echo json_encode($cat_sales);
+                ?>,
                 backgroundColor: ['#4a6cf7', '#f7c948', '#f74a4a', '#4af78c', '#a64af7']
             }]
         };
@@ -355,7 +352,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value;
+                                }
+                            }
                         }
                     }
                 }
@@ -373,6 +375,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     plugins: {
                         legend: {
                             position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    return `${label}: ${value} items sold`;
+                                }
+                            }
                         }
                     }
                 }

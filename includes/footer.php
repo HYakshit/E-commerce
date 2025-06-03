@@ -1,5 +1,5 @@
         </main>
-        <footer class="bg-dark text-white py-5 mt-5">
+        <footer id="footer" class="bg-dark text-white py-5 mt-5">
             <div class="container">
                 <div class="row">
                     <div class="col-md-4 mb-4 mb-md-0">
@@ -7,6 +7,7 @@
                         <p class="text-muted">Your one-stop shop for all your needs. High-quality products at affordable
                             prices.</p>
                     </div>
+                    <?php if (!isAdmin()): ?>
                     <div class="col-md-4 mb-4 mb-md-0">
                         <h5 class="mb-3">Quick Links</h5>
                         <ul class="list-unstyled">
@@ -24,6 +25,7 @@
                             <?php endif; ?>
                         </ul>
                     </div>
+                    <?php endif; ?>
                     <div class="col-md-4">
                         <h5 class="mb-3">Contact Us</h5>
                         <p class="text-muted mb-2">Email: dummy-email@shopnow.com</p>

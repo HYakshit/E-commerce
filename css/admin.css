@@ -314,6 +314,11 @@
 .data-table tr:last-child td {
     border-bottom: none;
 }
+@media (min-width: 1080px) {
+    #footer{
+        padding-left: 250px;
+    }
+}
 
 .data-table-footer {
     display: flex;
@@ -491,7 +496,8 @@
 }
 
 .date-range {
-    display: flex;
+    display: flex !important;
+    flex-direction: column;
     gap: var(--admin-spacing-xs);
 }
 

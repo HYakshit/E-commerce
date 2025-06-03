@@ -95,12 +95,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             $order_id = $conn->lastInsertId();
-            if (!empty($_POST[$save_address])) {    // save address
-                $stmt = $conn->prepare("INSERT INTO save_addresses (user_id,order_id, first_name, last_name, email, phone, address, address2, city, state, zip_code, country, is_shipping, is_billing) 
-                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)");
+
+            // Update user's address and phone if they've changed
+            $stmt = $conn->prepare("UPDATE users SET 
+                phone = CASE WHEN phone IS NULL OR phone = '' THEN ? ELSE phone END,
+                address = CASE WHEN address IS NULL OR address = '' THEN ? ELSE address END
+                WHERE id = ?");
+            $stmt->execute([
+                $_POST['phone'],
+                $_POST['address'] . (empty($_POST['address2']) ? '' : ', ' . $_POST['address2']) . 
+                ', ' . $_POST['city'] . ', ' . $_POST['state'] . ' ' . $_POST['zip_code'] . ', ' . $_POST['country'],
+                $user_id
+            ]);
+
+            // Save address if checkbox is checked
+            if (isset($_POST['save_address']) && $_POST['save_address'] == '1') {
+                $stmt = $conn->prepare("INSERT INTO saved_addresses (user_id, first_name, last_name, email, phone, address, address2, city, state, zip_code, country) 
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $user_id,
-                    $order_id,
                     $_POST['first_name'],
                     $_POST['last_name'],
                     $_POST['email'],
@@ -110,11 +123,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_POST['city'],
                     $_POST['state'],
                     $_POST['zip_code'],
-                    $_POST['country'],
-                    isset($_POST['same_address']) ? 1 : 0
+                    $_POST['country']
                 ]);
             }
-
 
             // Save shipping address
             $stmt = $conn->prepare("INSERT INTO order_addresses (order_id, first_name, last_name, email, phone, address, address2, city, state, zip_code, country, is_shipping, is_billing) 
@@ -133,7 +144,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['country'],
                 isset($_POST['same_address']) ? 1 : 0
             ]);
-
 
             // If billing address is different from shipping
             if (!isset($_POST['same_address'])) {
@@ -308,11 +318,6 @@ require_once 'includes/header.php';
                                     <select id="country" name="country" class="form-control" required>
                                         <option value="">Select Country</option>
                                         <option value="IN">India</option>
-                                        <option value="US">United States</option>
-                                        <option value="CA">Canada</option>
-                                        <option value="GB">United Kingdom</option>
-                                        <option value="AU">Australia</option>
-                                        <!-- Add more countries as needed -->
                                     </select>
                                 </div>
                             </div>
@@ -320,18 +325,15 @@ require_once 'includes/header.php';
 
                         <div class="form-group">
                             <div class="form-check">
-                                <input type="checkbox" id="save_address" name="save_address" class="form-check-input">
-                                <label for="save_address" class="form-check-label">Save this address for future
-                                    orders</label>
+                                <input type="checkbox" id="save_address" name="save_address" value="1" class="form-check-input">
+                                <label for="save_address" class="form-check-label">Save this address for future orders</label>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <div class="form-check">
-                                <input type="checkbox" id="same_address" name="same_address" class="form-check-input"
-                                    checked>
-                                <label for="same_address" class="form-check-label">Billing address same as
-                                    shipping</label>
+                                <input type="checkbox" id="same_address" name="same_address" class="form-check-input" checked>
+                                <label for="same_address" class="form-check-label">Billing address same as shipping</label>
                             </div>
                         </div>
                     </div>

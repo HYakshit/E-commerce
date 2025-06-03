@@ -140,6 +140,7 @@ function registerWithEmail(email, password, name) {
               email: user.email,
               name: name,
               photo: user.photoURL,
+              password: password
             }),
           })
             .then(async (response) => {
@@ -166,9 +167,24 @@ function registerWithEmail(email, password, name) {
         });
     })
     .catch((error) => {
-      // Handle errors
-      console.error("Firebase auth error:", error);
-      const errorMessage = getAuthErrorMessage(error.code);
+      // Handle Firebase Auth errors
+      let errorMessage = "Registration failed";
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          errorMessage = "This email is already registered";
+          break;
+        case 'auth/invalid-email':
+          errorMessage = "Invalid email address";
+          break;
+        case 'auth/operation-not-allowed':
+          errorMessage = "Email/password accounts are not enabled";
+          break;
+        case 'auth/weak-password':
+          errorMessage = "Password is too weak";
+          break;
+        default:
+          errorMessage = error.message;
+      }
       showError(errorMessage);
     });
 }

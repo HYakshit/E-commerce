@@ -12,21 +12,43 @@ if ($is_ajax || strpos($content_type, 'application/json') !== false) {
     
     if ($data && isset($data['action']) && $data['action'] === 'firebase_register') {
         try {
-            // Your existing registration logic here
-            // For example:
+            require_once 'includes/db_connect.php';
+            
             $uid = $data['uid'];
             $email = $data['email'];
             $name = $data['name'];
-            $photo = $data['photo'];
+            $photo = $data['photo'] ?? null;
+            $password = isset($data['password']) ? password_hash($data['password'], PASSWORD_DEFAULT) : null;
             
-            // Add user to database
-            // ... your database insertion code ...
+            // Check if user already exists
+            $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $existing_user = $stmt->fetch();
+            
+            if ($existing_user) {
+                // Update existing user's Firebase UID and other details if needed
+                $stmt = $conn->prepare("UPDATE users SET 
+                    firebase_uid = ?,
+                    name = ?,
+                    password = COALESCE(?, password)
+                    WHERE id = ?");
+                $stmt->execute([$uid, $name, $password, $existing_user['id']]);
+                $user_id = $existing_user['id'];
+            } else {
+                // Create new user
+                $stmt = $conn->prepare("INSERT INTO users (firebase_uid, email, name, password, created_at) 
+                    VALUES (?, ?, ?, ?, NOW())");
+                $stmt->execute([$uid, $email, $name, $password]);
+                $user_id = $conn->lastInsertId();
+            }
             
             // Start session and set session variables
             session_start();
-            $_SESSION['user_id'] = $uid;
+            $_SESSION['user_id'] = $user_id;
+            $_SESSION['firebase_uid'] = $uid;
             $_SESSION['email'] = $email;
             $_SESSION['name'] = $name;
+            $_SESSION['is_admin'] = false;
             
             echo json_encode([
                 'success' => true,
@@ -101,30 +123,23 @@ require_once 'includes/header.php';
                     </div>
                     
                     <div class="form-group">
-                        <div class="form-check">
-                            <input type="checkbox" id="terms" name="terms" class="form-check-input" required>
-                            <label for="terms" class="form-check-label">I agree to the <a href="terms.php" target="_blank">Terms and Conditions</a></label>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary btn-block">Register</button>
+                        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
                     </div>
                 </form>
-                
+
                 <div class="auth-separator">
                     <span>or</span>
                 </div>
-                
+
                 <div class="social-login">
                     <button id="google-login-btn" class="social-btn">
                         <i class="fab fa-google"></i>
                         Continue with Google
                     </button>
                 </div>
-                
+
                 <div class="auth-footer">
-                    Already have an account? <a href="login.php">Login</a>
+                    Already have an account? <a href="login.php">Log In</a>
                 </div>
             </div>
         </div>
