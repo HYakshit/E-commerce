@@ -1,14 +1,16 @@
 <?php
 $page_title = "Admin Dashboard";
 $is_admin = true;
-require_once '../includes/db_connect.php';
-require_once '../includes/functions.php';
+require_once __DIR__ . '/../includes/db_connect.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 // Check if user is admin
-// if (!isLoggedIn() || !isAdmin()) {
-//     header('Location: /admin/login.php');
-//     exit();
-// }
+if (!isLoggedIn() || !isAdmin()) {
+    // Store the intended admin destination
+    $_SESSION['admin_redirect'] = '/admin/index.php';
+    header('Location: ../login.php');
+    exit();
+}
 
 // Get dashboard statistics
 $today = date('Y-m-d');

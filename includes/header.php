@@ -1,7 +1,7 @@
 <?php
-require_once 'includes/db_connect.php';
-require_once 'includes/functions.php';
-require_once 'includes/firebase_config.php';
+require_once __DIR__ . '/db_connect.php';
+require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/firebase_config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,6 +38,6 @@ require_once 'includes/firebase_config.php';
 
 <body>
     <header>
-        <?php include 'includes/navbar.php'; ?>
+        <?php include __DIR__ . '/navbar.php'; ?>
     </header>
     <main>

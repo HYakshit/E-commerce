@@ -4,6 +4,7 @@ firebase.initializeApp(window.firebaseConfig);
 // Function to handle login with Google
 function loginWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
+  clearError(); // Clear any existing errors
 
   firebase
     .auth()
@@ -17,6 +18,7 @@ function loginWithGoogle() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
         },
         body: JSON.stringify({
           action: "firebase_login",
@@ -43,57 +45,75 @@ function loginWithGoogle() {
     .catch((error) => {
       // Handle errors
       console.error("Firebase auth error:", error);
-      showError("Authentication failed. Please try again.");
+      const errorMessage = getAuthErrorMessage(error.code);
+      showError(errorMessage);
     });
 }
 
 // Function to handle login with email and password
 function loginWithEmail(email, password) {
+  clearError(); // Clear any existing errors
+
+  // Try Firebase authentication first
   firebase
     .auth()
     .signInWithEmailAndPassword(email, password)
     .then((userCredential) => {
       // User is signed in
       const user = userCredential.user;
+      console.log('Firebase auth successful:', user.email);
 
       // Send the user data to the server
-      fetch("/login.php", {
+      return fetch("/login.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
         },
         body: JSON.stringify({
           action: "firebase_login",
           uid: user.uid,
           email: user.email,
           name: user.displayName || email.split("@")[0],
-          photo: user.photoURL,
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            window.location.href = data.redirect || "/index.php";
-          } else {
-            showError(data.message || "Authentication failed");
-          }
+          photo: user.photoURL
         })
-        .catch((error) => {
-          showError("Server error. Please try again later.");
-          console.error("Server error:", error);
-        });
+      });
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log('Server response:', data);
+      if (data.success) {
+        window.location.href = data.redirect || "/index.php";
+      } else {
+        throw new Error(data.message || "Authentication failed");
+      }
     })
     .catch((error) => {
-      // Handle errors
-      console.error("Firebase auth error:", error);
-
-      const errorMessage = getAuthErrorMessage(error.code);
+      console.error("Authentication error:", error);
+      
+      // Get appropriate error message
+      let errorMessage;
+      if (error.code) {
+        // Firebase Auth Error
+        errorMessage = getAuthErrorMessage(error.code);
+      } else {
+        // Server or other error
+        errorMessage = error.message || "Authentication failed";
+      }
+      
       showError(errorMessage);
     });
 }
 
 // Function to handle user registration
 function registerWithEmail(email, password, name) {
+  clearError(); // Clear any existing errors
+
   firebase
     .auth()
     .createUserWithEmailAndPassword(email, password)
@@ -108,10 +128,11 @@ function registerWithEmail(email, password, name) {
         })
         .then(() => {
           // Send the user data to the server
-          fetch("/register.php", {
+          return fetch("/register.php", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "X-Requested-With": "XMLHttpRequest"
             },
             body: JSON.stringify({
               action: "firebase_register",
@@ -121,24 +142,32 @@ function registerWithEmail(email, password, name) {
               photo: user.photoURL,
             }),
           })
-            .then((response) => response.json())
-            .then((data) => {
-              if (data.success) {
-                window.location.href = data.redirect || "/index.php";
-              } else {
-                showError(data.message || "Registration failed");
+            .then(async (response) => {
+              const responseText = await response.text();
+              console.log('Server response from register:', responseText);
+
+              try {
+                // Try to parse the response as JSON
+                const data = JSON.parse(responseText);
+                if (data.success) {
+                  window.location.href = data.redirect || "/index.php";
+                } else {
+                  showError(data.message || "Registration failed");
+                }
+              } catch (e) {
+                console.error('Failed to parse server response:', e);
+                showError("Server returned invalid response. Please contact support.");
               }
             })
             .catch((error) => {
               showError("Server error. Please try again later.");
-              console.error("Server error:", error);
+              console.error("Server error in registration:", error);
             });
         });
     })
     .catch((error) => {
       // Handle errors
       console.error("Firebase auth error:", error);
-
       const errorMessage = getAuthErrorMessage(error.code);
       showError(errorMessage);
     });
@@ -146,31 +175,35 @@ function registerWithEmail(email, password, name) {
 
 // Function to handle user logout
 function logoutUser() {
+  console.log('Logout function called');
+  
   firebase
     .auth()
     .signOut()
     .then(() => {
-      // Sign-out successful, notify the server
-      fetch("/login.php", {
+      console.log('Firebase signout successful');
+      return fetch("/login.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
         },
         body: JSON.stringify({
-          action: "logout",
+          action: "logout"
         }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          window.location.href = "/login.php";
-        })
-        .catch((error) => {
-          console.error("Server error:", error);
-          window.location.href = "/login.php";
-        });
+      });
+    })
+    .then(response => response.json())
+    .then((data) => {
+      if (data.success) {
+        window.location.href = "/login.php";
+      } else {
+        throw new Error('Logout failed: ' + (data.message || 'Unknown error'));
+      }
     })
     .catch((error) => {
-      console.error("Firebase signout error:", error);
+      console.error("Logout error:", error);
+      // Redirect to login page even if there's an error
       window.location.href = "/login.php";
     });
 }
@@ -184,21 +217,32 @@ function checkAuthState() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
         },
         body: JSON.stringify({
           action: "check_session",
           uid: user.uid,
         }),
       })
-        .then((response) => response.json())
-        .then((data) => {
-          // If server session is not valid, sign out from Firebase
-          if (!data.logged_in) {
-            firebase.auth().signOut();
+        .then(async (response) => {
+          const responseText = await response.text();
+          console.log('Server response from check_session:', responseText);
+
+          try {
+            // Try to parse the response as JSON
+            const data = JSON.parse(responseText);
+            // If server session is not valid, sign out from Firebase
+            if (!data.logged_in) {
+              firebase.auth().signOut();
+            }
+          } catch (e) {
+            console.error('Failed to parse server response:', e);
+            // Don't sign out if we can't parse the response
+            // as this might be a temporary server error
           }
         })
         .catch((error) => {
-          console.error("Server error:", error);
+          console.error("Server error in checkAuthState:", error);
         });
     }
   });
@@ -206,6 +250,8 @@ function checkAuthState() {
 
 // Helper function to get human-readable error messages
 function getAuthErrorMessage(errorCode) {
+  console.log("Getting error message for code:", errorCode); // Add error code logging
+
   switch (errorCode) {
     case "auth/email-already-in-use":
       return "This email is already registered. Please login instead.";
@@ -214,10 +260,30 @@ function getAuthErrorMessage(errorCode) {
     case "auth/weak-password":
       return "Password should be at least 6 characters.";
     case "auth/user-not-found":
+      return "No account found with this email. Please check your email or register.";
     case "auth/wrong-password":
-      return "Invalid email or password.";
+      return "Incorrect password. Please try again.";
+    case "auth/too-many-requests":
+      return "Too many failed login attempts. Please try again later.";
+    case "auth/network-request-failed":
+      return "Network error. Please check your internet connection.";
+    case "auth/popup-closed-by-user":
+      return "Login popup was closed. Please try again.";
+    case "auth/cancelled-popup-request":
+      return "Another login popup is already open.";
+    case "auth/operation-not-allowed":
+      return "This login method is not enabled. Please try another method.";
+    case "auth/invalid-login-credentials":
+      return "Invalid email or password. Please check your credentials and try again.";
+    case "auth/missing-password":
+      return "Please enter your password.";
+    case "auth/internal-error":
+      return "An internal error occurred. Please try again later.";
+    case "auth/unknown":
+      return "An unknown error occurred. Please try again.";
     default:
-      return "An error occurred. Please try again.";
+      console.log("Unhandled error code:", errorCode); // Log unhandled error codes
+      return `Authentication error (${errorCode}). Please try again.`;
   }
 }
 
@@ -227,24 +293,49 @@ function showError(message) {
   if (errorElement) {
     errorElement.textContent = message;
     errorElement.style.display = "block";
+    errorElement.classList.remove("hide");
+
+    // Scroll error into view if it's not visible
+    const rect = errorElement.getBoundingClientRect();
+    const isVisible = (rect.top >= 0) && (rect.bottom <= window.innerHeight);
+    if (!isVisible) {
+      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   } else {
     alert(message);
   }
 }
 
+// Helper function to clear error messages
+function clearError() {
+  const errorElement = document.getElementById("error-message");
+  if (errorElement) {
+    errorElement.classList.add("hide");
+    setTimeout(() => {
+      errorElement.style.display = "none";
+      errorElement.textContent = "";
+    }, 300);
+  }
+}
+
 // Event listeners
 document.addEventListener("DOMContentLoaded", function () {
+  console.log('DOM Content Loaded');
+  
   // Check auth state
   checkAuthState();
 
   // Logout button listener
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", function (e) {
+  const logoutButtons = document.querySelectorAll('.logout-btn');
+  console.log('Logout buttons found:', logoutButtons.length);
+  
+  logoutButtons.forEach(button => {
+    button.addEventListener("click", function (e) {
       e.preventDefault();
+      console.log('Logout button clicked');
       logoutUser();
     });
-  }
+  });
 
   // Google login button
   const googleLoginBtn = document.getElementById("google-login-btn");

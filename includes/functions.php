@@ -144,8 +144,8 @@ function storeFirebaseUser($uid, $email, $name, $conn)
     global $db_type;
 
     // Check if user exists in the database
-    $stmt = $conn->prepare("SELECT * FROM users WHERE firebase_uid = ?");
-    $stmt->execute([$uid]);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE firebase_uid = ? OR email = ?");
+    $stmt->execute([$uid, $email]);
     $user = $stmt->fetch();
 
     if (!$user) {
@@ -163,7 +163,13 @@ function storeFirebaseUser($uid, $email, $name, $conn)
         $is_admin = false; // Default new user is not admin
     } else {
         $user_id = $user['id'];
-        $is_admin = $user['is_admin'];
+        $is_admin = (bool)$user['is_admin']; // Convert to boolean
+        
+        // Update existing user's Firebase UID if it's not set
+        if (empty($user['firebase_uid'])) {
+            $stmt = $conn->prepare("UPDATE users SET firebase_uid = ? WHERE id = ?");
+            $stmt->execute([$uid, $user_id]);
+        }
     }
 
     // Store user info in session

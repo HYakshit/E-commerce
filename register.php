@@ -1,4 +1,59 @@
 <?php
+// Check if this is an AJAX request
+$content_type = isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '';
+$is_ajax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+if ($is_ajax || strpos($content_type, 'application/json') !== false) {
+    header('Content-Type: application/json');
+    
+    // Get JSON input
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+    
+    if ($data && isset($data['action']) && $data['action'] === 'firebase_register') {
+        try {
+            // Your existing registration logic here
+            // For example:
+            $uid = $data['uid'];
+            $email = $data['email'];
+            $name = $data['name'];
+            $photo = $data['photo'];
+            
+            // Add user to database
+            // ... your database insertion code ...
+            
+            // Start session and set session variables
+            session_start();
+            $_SESSION['user_id'] = $uid;
+            $_SESSION['email'] = $email;
+            $_SESSION['name'] = $name;
+            
+            echo json_encode([
+                'success' => true,
+                'redirect' => '/index.php',
+                'message' => 'Registration successful'
+            ]);
+            exit;
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Registration failed: ' . $e->getMessage()
+            ]);
+            exit;
+        }
+    }
+    
+    // If we get here, invalid request
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Invalid request'
+    ]);
+    exit;
+}
+
+// If not an AJAX request, continue with regular HTML page
 $page_title = "Register";
 require_once 'includes/db_connect.php';
 require_once 'includes/functions.php';
