@@ -1,18 +1,24 @@
 <?php
 // Firebase configuration variables
 // These would come from environment variables in production
+// Output the config as a JavaScript object to be used in the frontend
+// require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
 $firebaseConfig = [
-    'apiKey' => getenv('FIREBASE_API_KEY') ?: 'AIzaSyA2vABdu-vQPPwET38TXFowRYvods_GCoI',
-    'authDomain' => getenv('FIREBASE_PROJECT_ID') ? getenv('FIREBASE_PROJECT_ID') . '.firebaseapp.com' : 'authentication-10a27.firebaseapp.com',
-    'projectId' => getenv('FIREBASE_PROJECT_ID') ?: 'authentication-10a27',
-    'appId' => getenv('FIREBASE_APP_ID') ?: '1:454245723353:web:05c31324c6c7faaf9022c8'
+  'apiKey' => $_ENV['FIREBASE_API_KEY'] ?? '',
+  'authDomain' => $_ENV['FIREBASE_AUTH_DOMAIN'] ?? '',
+  'projectId' => $_ENV['FIREBASE_PROJECT_ID'] ?? '',
+  'appId' => $_ENV['FIREBASE_APP_ID'] ?? '',
 ];
 
-// Output the config as a JavaScript object to be used in the frontend
 function outputFirebaseConfig()
 {
-    global $firebaseConfig;
-    echo "
+  global $firebaseConfig;
+  echo "
 <script>
   window.firebaseConfig = {
     apiKey: '" . htmlspecialchars($firebaseConfig['apiKey'], ENT_QUOTES, 'UTF-8') . "',
