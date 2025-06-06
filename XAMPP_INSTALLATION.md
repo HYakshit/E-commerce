@@ -47,7 +47,7 @@ git clone https://your-repository-url.git shopnow
 3. Enter "shopdb" as the database name and click "Create"
 4. Select the newly created "shopdb" database from the left sidebar
 5. Click on the "Import" tab
-6. Click "Choose File" and select the `db/mysql_shopdb.sql` file from your project folder
+6. Click "Choose File" and select the `db/musql_shopdb.sql` file from your project folder
 7. Click "Go" to import the database structure and sample data
 
 ### Step 5: Configure the Application
@@ -63,6 +63,7 @@ The application is already configured to work with XAMPP's default MySQL setting
    $username = 'root'; // Change if needed
    $password = ''; // Change if needed
    ```
+ Setup composer to make Env work in firebase auth
 
 ### Step 6: Access the Website
 
@@ -77,9 +78,9 @@ You can log in as an administrator using the following credentials:
 - Email: admin@shopnow.com
 - Password: admin123
 
-## Configuring Firebase (Optional)
+## Configuring Firebase
 
-If you want to use Firebase authentication:
+ Firebase authentication:
 
 1. Go to [Firebase Console](https://console.firebase.google.com/)
 2. Create a new project

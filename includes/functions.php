@@ -1,4 +1,8 @@
 <?php
+
+// Detect base path dynamically (optional but helpful)
+$base_url = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) ? '' : '/php-ecomm';
+
 // Start the session at the beginning before any output
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
