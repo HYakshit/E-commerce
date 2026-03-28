@@ -28,8 +28,8 @@
                     <?php endif; ?>
                     <div class="col-md-4">
                         <h5 class="mb-3">Contact Us</h5>
-                        <p class="text-muted mb-2">Email: dummy-email@shopnow.com</p>
-                        <p class="text-muted mb-2">Phone: +91 (123) 456-7890</p>
+                        <p class="text-muted mb-2">Email: akshit628325@gmail.com</p>
+                        <p class="text-muted mb-2">Phone: +91 6283250677</p>
                         <div class="mt-3">
                             <a href="#" class="text-decoration-none me-3 text-muted"><i
                                     class="fab fa-facebook-f"></i></a>
@@ -42,6 +42,7 @@
                 <hr class="my-4 bg-secondary">
                 <div class="text-center text-muted">
                     <p class="mb-0">&copy; <?php echo date("Y"); ?> ShopNow. All rights reserved.</p>
+                    <p class="mb-0">Developed by <a  href="https://akshit-for-business.netlify.app/" class="text-muted" target="_blank">Akshit</a></p>
                 </div>
             </div>
         </footer>

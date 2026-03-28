@@ -230,75 +230,70 @@ require_once '../includes/header.php';
         <div class="alert alert-danger"><?php echo $error_message; ?></div>
         <?php endif; ?>
 
-        <!-- Filters -->
-        <div class="filters-bar">
-            <form id="filter-form" action="/admin/products.php" method="GET" class="row">
-                <div class="filter-item">
-                    <label for="filter-category">Category</label>
-                    <select id="filter-category" name="category" class="form-control">
-                        <option value="">All Categories</option>
-                        <?php foreach ($categories as $category): ?>
-                        <option value="<?php echo $category['id']; ?>"
-                            <?php echo (isset($_GET['category']) && $_GET['category'] == $category['id']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($category['name']); ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <div class="filter-item">
-                    <label for="filter-stock">Stock Status</label>
-                    <select id="filter-stock" name="stock" class="form-control">
-                        <option value="">All</option>
-                        <option value="in_stock"
-                            <?php echo (isset($_GET['stock']) && $_GET['stock'] == 'in_stock') ? 'selected' : ''; ?>>In
-                            Stock</option>
-                        <option value="out_of_stock"
-                            <?php echo (isset($_GET['stock']) && $_GET['stock'] == 'out_of_stock') ? 'selected' : ''; ?>>
-                            Out of Stock</option>
-                        <option value="low_stock"
-                            <?php echo (isset($_GET['stock']) && $_GET['stock'] == 'low_stock') ? 'selected' : ''; ?>>
-                            Low Stock</option>
-                    </select>
-                </div>
-
-                <div class="filter-item">
-                    <label for="filter-sort">Sort By</label>
-                    <select id="filter-sort" name="sort" class="form-control">
-                        <option value="newest" <?php echo $sort == 'newest' ? 'selected' : ''; ?>>Newest First</option>
-                        <option value="oldest" <?php echo $sort == 'oldest' ? 'selected' : ''; ?>>Oldest First</option>
-                        <option value="name_asc" <?php echo $sort == 'name_asc' ? 'selected' : ''; ?>>Name (A-Z)
-                        </option>
-                        <option value="name_desc" <?php echo $sort == 'name_desc' ? 'selected' : ''; ?>>Name (Z-A)
-                        </option>
-                        <option value="price_low" <?php echo $sort == 'price_low' ? 'selected' : ''; ?>>Price (Low to
-                            High)</option>
-                        <option value="price_high" <?php echo $sort == 'price_high' ? 'selected' : ''; ?>>Price (High to
-                            Low)</option>
-                        <option value="stock_low" <?php echo $sort == 'stock_low' ? 'selected' : ''; ?>>Stock (Low to
-                            High)</option>
-                        <option value="stock_high" <?php echo $sort == 'stock_high' ? 'selected' : ''; ?>>Stock (High to
-                            Low)</option>
-                    </select>
-                </div>
-
-                <div class="filter-item">
-                    <label for="filter-search">Search</label>
-                    <div class="search-input">
-                        <input type="text" id="filter-search" name="search" class="form-control"
-                            placeholder="Search by name, SKU..."
-                            value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-                        <button type="submit"><i class="fas fa-search"></i></button>
+        <div class="admin-products-layout">
+            <aside class="admin-filters-sidebar">
+                <div class="admin-filters-card">
+                    <div class="admin-filters-header">
+                        <h3>Filters</h3>
+                        <a href="/admin/products.php" class="catalog-clear-link">Clear</a>
                     </div>
-                </div>
 
-                <div class="filter-actions">
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    <a href="/admin/products.php" class="btn btn-outline">Clear Filters</a>
-                </div>
-            </form>
-        </div>
+                    <form id="filter-form" action="/admin/products.php" method="GET" class="admin-filter-form">
+                        <div class="admin-filter-group">
+                            <label for="filter-search">Search</label>
+                            <input type="text" id="filter-search" name="search" class="form-control"
+                                placeholder="Search by name, SKU..."
+                                value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        </div>
 
+                        <div class="admin-filter-group">
+                            <label for="filter-category">Category</label>
+                            <select id="filter-category" name="category" class="form-control">
+                                <option value="">All Categories</option>
+                                <?php foreach ($categories as $category): ?>
+                                <option value="<?php echo $category['id']; ?>"
+                                    <?php echo (isset($_GET['category']) && $_GET['category'] == $category['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($category['name']); ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="admin-filter-group">
+                            <label for="filter-stock">Stock Status</label>
+                            <select id="filter-stock" name="stock" class="form-control">
+                                <option value="">All</option>
+                                <option value="in_stock"
+                                    <?php echo (isset($_GET['stock']) && $_GET['stock'] == 'in_stock') ? 'selected' : ''; ?>>In Stock</option>
+                                <option value="out_of_stock"
+                                    <?php echo (isset($_GET['stock']) && $_GET['stock'] == 'out_of_stock') ? 'selected' : ''; ?>>Out of Stock</option>
+                                <option value="low_stock"
+                                    <?php echo (isset($_GET['stock']) && $_GET['stock'] == 'low_stock') ? 'selected' : ''; ?>>Low Stock</option>
+                            </select>
+                        </div>
+
+                        <div class="admin-filter-group">
+                            <label for="filter-sort">Sort By</label>
+                            <select id="filter-sort" name="sort" class="form-control">
+                                <option value="newest" <?php echo $sort == 'newest' ? 'selected' : ''; ?>>Newest First</option>
+                                <option value="oldest" <?php echo $sort == 'oldest' ? 'selected' : ''; ?>>Oldest First</option>
+                                <option value="name_asc" <?php echo $sort == 'name_asc' ? 'selected' : ''; ?>>Name (A-Z)</option>
+                                <option value="name_desc" <?php echo $sort == 'name_desc' ? 'selected' : ''; ?>>Name (Z-A)</option>
+                                <option value="price_low" <?php echo $sort == 'price_low' ? 'selected' : ''; ?>>Price (Low to High)</option>
+                                <option value="price_high" <?php echo $sort == 'price_high' ? 'selected' : ''; ?>>Price (High to Low)</option>
+                                <option value="stock_low" <?php echo $sort == 'stock_low' ? 'selected' : ''; ?>>Stock (Low to High)</option>
+                                <option value="stock_high" <?php echo $sort == 'stock_high' ? 'selected' : ''; ?>>Stock (High to Low)</option>
+                            </select>
+                        </div>
+
+                        <div class="admin-filter-actions">
+                            <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+
+            <div class="admin-products-main">
         <!-- Products Table -->
         <div class="data-table-wrapper">
             <form id="bulk-action-form" method="POST">
@@ -434,6 +429,8 @@ require_once '../includes/header.php';
                 </div>
             </div>
             <?php endif; ?>
+        </div>
+            </div>
         </div>
     </div>
 </div>

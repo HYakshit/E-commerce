@@ -79,68 +79,46 @@ $query_string = $_GET;
 unset($query_string['page']);
 $base_url = $current_url . '?' . http_build_query($query_string) . (empty($query_string) ? '' : '&');
 
+$sort_options = [
+    'newest' => 'Newest',
+    'oldest' => 'Oldest',
+    'price_low' => 'Price: Low to High',
+    'price_high' => 'Price: High to Low'
+];
+
 require_once 'includes/header.php';
 ?>
 
 <section class="products-page">
     <div class="container">
-        <div class="row">
-            <!-- Sidebar Filters -->
-            <div class="col-12 col-md-3 mt-2">
-                <div class="search-filters">
-                    <h3 class="filters-title">Filters</h3>
-                    <form action="products.php" method="GET">
-                        <?php
-                        // Preserve other query parameters
-                        foreach ($_GET as $key => $value) {
-                            if (!in_array($key, ['category', 'min_price', 'max_price'])) {
-                                echo '<input type="hidden" name="' . htmlspecialchars($key) . '" value="' . htmlspecialchars($value) . '">';
-                            }
-                        }
-                        ?>
+        <div class="catalog-layout">
+            <?php
+            $hidden_fields = [];
+            foreach ($_GET as $key => $value) {
+                if (!in_array($key, ['category', 'min_price', 'max_price', 'sort', 'page'])) {
+                    $hidden_fields[$key] = $value;
+                }
+            }
 
-                        <div class="filter-group">
-                            <label class="filter-label">Category</label>
-                            <select name="category" class="form-control">
-                                <option value="">All Categories</option>
-                                <?php foreach ($categories as $category): ?>
-                                    <option value="<?php echo $category['id']; ?>"
-                                        <?php echo (isset($_GET['category']) && $_GET['category'] == $category['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($category['name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+            echo renderCatalogSidebar([
+                'title' => 'Filter Products',
+                'form_action' => 'products.php',
+                'categories' => $categories,
+                'current_category' => isset($_GET['category']) ? $_GET['category'] : '',
+                'current_min_price' => isset($_GET['min_price']) ? $_GET['min_price'] : '',
+                'current_max_price' => isset($_GET['max_price']) ? $_GET['max_price'] : '',
+                'current_sort' => $sort,
+                'sort_options' => $sort_options,
+                'hidden_fields' => $hidden_fields,
+                'clear_url' => 'products.php'
+            ]);
+            ?>
 
-                        <div class="filter-group">
-                            <label class="filter-label">Price Range</label>
-                            <div class="price-range">
-                                <input type="number" name="min_price" class="form-control" placeholder="Min"
-                                    value="<?php echo isset($_GET['min_price']) ? htmlspecialchars($_GET['min_price']) : ''; ?>">
-                                <input type="number" name="max_price" class="form-control" placeholder="Max"
-                                    value="<?php echo isset($_GET['max_price']) ? htmlspecialchars($_GET['max_price']) : ''; ?>">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Products Grid -->
-            <div class="col-12 col-md-9">
-                <div class="products-header mb-2">
-                    <h2><?php echo $page_title; ?></h2>
-                    <div class="products-sorting">
-                        <label>Sort by:</label>
-                        <select id="sort-products" class="form-control">
-                            <option value="newest" <?php echo $sort == 'newest' ? 'selected' : ''; ?>>Newest</option>
-                            <option value="oldest" <?php echo $sort == 'oldest' ? 'selected' : ''; ?>>Oldest</option>
-                            <option value="price_low" <?php echo $sort == 'price_low' ? 'selected' : ''; ?>>Price: Low
-                                to High</option>
-                            <option value="price_high" <?php echo $sort == 'price_high' ? 'selected' : ''; ?>>Price:
-                                High to Low</option>
-                        </select>
+            <div class="catalog-main">
+                <div class="catalog-main-header">
+                    <div>
+                        <h2><?php echo $page_title; ?></h2>
+                        <p class="catalog-results-count"><?php echo $total_products; ?> products available</p>
                     </div>
                 </div>
 
@@ -197,19 +175,5 @@ require_once 'includes/header.php';
         </div>
     </div>
 </section>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle sort change
-        const sortSelect = document.getElementById('sort-products');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', function() {
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set('sort', this.value);
-                window.location.href = currentUrl.toString();
-            });
-        }
-    });
-</script>
 
 <?php require_once 'includes/footer.php'; ?>

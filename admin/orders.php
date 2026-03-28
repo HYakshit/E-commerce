@@ -16,15 +16,15 @@ if (strpos($content_type, 'application/json') !== false && $_SERVER['REQUEST_MET
     // Get the JSON data from the request body
     $json_data = file_get_contents('php://input');
     $data = json_decode($json_data, true);
-    
+
     if ($data && isset($data['action']) && $data['action'] === 'update_status') {
         $order_id = (int)$data['order_id'];
         $status = $data['status'];
-        
+
         try {
             $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
             $result = $stmt->execute([$status, $order_id]);
-            
+
             header('Content-Type: application/json');
             echo json_encode(['success' => $result]);
             exit;
@@ -109,9 +109,9 @@ $total_pages = ceil($total_orders / $per_page);
 // Get orders
 $sql = "SELECT o.*, u.name as customer_name, u.email as customer_email 
         FROM orders o 
-        LEFT JOIN users u ON o.user_id = u.id" . 
-        $where_sql . $order_by . 
-        " LIMIT " . $per_page . " OFFSET " . $offset;
+        LEFT JOIN users u ON o.user_id = u.id" .
+    $where_sql . $order_by .
+    " LIMIT " . $per_page . " OFFSET " . $offset;
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $orders = $stmt->fetchAll();
@@ -127,7 +127,7 @@ require_once '../includes/header.php';
 
 <div class="admin-container">
     <!-- Admin Sidebar -->
-    <?php  require_once './includes/sidebar.php'; ?>
+    <?php require_once './includes/sidebar.php'; ?>
 
     <!-- Admin Content -->
     <div class="admin-content" id="admin-content">
@@ -230,99 +230,101 @@ require_once '../includes/header.php';
                 </thead>
                 <tbody>
                     <?php if (count($orders) > 0): ?>
-                    <?php foreach ($orders as $order): ?>
-                    <tr>
-                        <td>#<?php echo $order['id']; ?></td>
-                        <td>
-                            <div class="customer-info">
-                                <div class="customer-name"><?php echo htmlspecialchars($order['customer_name']); ?>
-                                </div>
-                                <div class="customer-email"><?php echo htmlspecialchars($order['customer_email']); ?>
-                                </div>
-                            </div>
-                        </td>
-                        <td><?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></td>
-                        <td>
-                            <select class="form-control update-status" data-order-id="<?php echo $order['id']; ?>">
-                                <option value="pending" <?php echo $order['status'] === 'pending' ? 'selected' : ''; ?>>
-                                    Pending</option>
-                                <option value="processing"
-                                    <?php echo $order['status'] === 'processing' ? 'selected' : ''; ?>>Processing
-                                </option>
-                                <option value="shipped" <?php echo $order['status'] === 'shipped' ? 'selected' : ''; ?>>
-                                    Shipped</option>
-                                <option value="delivered"
-                                    <?php echo $order['status'] === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-                                <option value="cancelled"
-                                    <?php echo $order['status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-                                <option value="refunded"
-                                    <?php echo $order['status'] === 'refunded' ? 'selected' : ''; ?>>Refunded</option>
-                            </select>
-                        </td>
-                        <td><?php echo formatPrice($order['total']); ?></td>
-                        <td><?php echo ucfirst(str_replace('_', ' ', $order['payment_method'])); ?></td>
-                        <td>
-                            <div class="action-buttons">
-                                <a href="order-details.php?id=<?php echo $order['id']; ?>" class="action-button view"
-                                    title="View Order Details">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="javascript:void(0);" class="action-button print" title="Print Invoice"
-                                    onclick="printInvoice(<?php echo $order['id']; ?>)">
-                                    <i class="fas fa-print"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
+                        <?php foreach ($orders as $order): ?>
+                            <tr>
+                                <td>#<?php echo $order['id']; ?></td>
+                                <td>
+                                    <div class="customer-info">
+                                        <div class="customer-name"><?php echo htmlspecialchars($order['customer_name']); ?>
+                                        </div>
+                                        <div class="customer-email"><?php echo htmlspecialchars($order['customer_email']); ?>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></td>
+                                <td>
+                                    <select class="form-control update-status " data-order-id="<?php echo $order['id']; ?>">
+                                        <option value="pending" class="<?php echo $order['status'] === 'pending' ? 'bg-warning' : ''; ?>" <?php echo $order['status'] === 'pending' ? 'selected' : ''; ?>>
+                                            Pending</option>
+                                        <option value="processing" class="<?php echo $order['status'] === 'processing' ? 'bg-white' : ''; ?>"
+                                            <?php echo $order['status'] === 'processing' ? 'selected' : ''; ?>>Processing
+                                        </option>
+                                        <option value="shipped" <?php echo $order['status'] === 'shipped' ? 'selected' : ''; ?>
+                                            class="<?php echo $order['status'] === 'shipped' ? 'bg-success' : ''; ?>">
+                                            Shipped</option>
+                                        <option value="delivered"
+                                            <?php echo $order['status'] === 'delivered' ? 'selected' : ''; ?> class="<?php echo $order['status'] === 'processing' ? 'bg-white' : ''; ?>">Delivered</option>
+
+                                        <option value="cancelled"
+                                            <?php echo $order['status'] === 'cancelled' ? 'selected' : ''; ?> class="<?php echo $order['status'] === 'processing' ? 'bg-white' : ''; ?>"> Cancelled</option>
+                                        <option value="refunded"
+                                            <?php echo $order['status'] === 'refunded' ? 'selected' : ''; ?> class="<?php echo $order['status'] === 'processing' ? 'bg-white' : ''; ?>">Refunded</option>
+                                    </select>
+                                </td>
+                                <td><?php echo formatPrice($order['total']); ?></td>
+                                <td><?php echo ucfirst(str_replace('_', ' ', $order['payment_method'])); ?></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="order-details.php?id=<?php echo $order['id']; ?>" class="action-button view"
+                                            title="View Order Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="javascript:void(0);" class="action-button print" title="Print Invoice"
+                                            onclick="printInvoice(<?php echo $order['id']; ?>)">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php else: ?>
-                    <tr>
-                        <td colspan="7" class="text-center">No orders found matching your criteria.</td>
-                    </tr>
+                        <tr>
+                            <td colspan="7" class="text-center">No orders found matching your criteria.</td>
+                        </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
 
             <!-- Pagination -->
             <?php if ($total_pages > 1): ?>
-            <div class="data-table-footer">
-                <div class="data-table-pagination">
-                    <?php if ($page > 1): ?>
-                    <a href="<?php echo $base_url; ?>page=1" class="page-button">
-                        <i class="fas fa-angle-double-left"></i>
-                    </a>
-                    <a href="<?php echo $base_url; ?>page=<?php echo $page - 1; ?>" class="page-button">
-                        <i class="fas fa-angle-left"></i>
-                    </a>
-                    <?php endif; ?>
+                <div class="data-table-footer">
+                    <div class="data-table-pagination">
+                        <?php if ($page > 1): ?>
+                            <a href="<?php echo $base_url; ?>page=1" class="page-button">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            <a href="<?php echo $base_url; ?>page=<?php echo $page - 1; ?>" class="page-button">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        <?php endif; ?>
 
-                    <?php
-                    // Show 3 pages before and after current page
-                    $start_page = max(1, $page - 3);
-                    $end_page = min($total_pages, $page + 3);
-                    
-                    for ($i = $start_page; $i <= $end_page; $i++):
-                    ?>
-                    <a href="<?php echo $base_url; ?>page=<?php echo $i; ?>"
-                        class="page-button <?php echo ($i == $page) ? 'active' : ''; ?>">
-                        <?php echo $i; ?>
-                    </a>
-                    <?php endfor; ?>
+                        <?php
+                        // Show 3 pages before and after current page
+                        $start_page = max(1, $page - 3);
+                        $end_page = min($total_pages, $page + 3);
 
-                    <?php if ($page < $total_pages): ?>
-                    <a href="<?php echo $base_url; ?>page=<?php echo $page + 1; ?>" class="page-button">
-                        <i class="fas fa-angle-right"></i>
-                    </a>
-                    <a href="<?php echo $base_url; ?>page=<?php echo $total_pages; ?>" class="page-button">
-                        <i class="fas fa-angle-double-right"></i>
-                    </a>
-                    <?php endif; ?>
+                        for ($i = $start_page; $i <= $end_page; $i++):
+                        ?>
+                            <a href="<?php echo $base_url; ?>page=<?php echo $i; ?>"
+                                class="page-button <?php echo ($i == $page) ? 'active' : ''; ?>">
+                                <?php echo $i; ?>
+                            </a>
+                        <?php endfor; ?>
+
+                        <?php if ($page < $total_pages): ?>
+                            <a href="<?php echo $base_url; ?>page=<?php echo $page + 1; ?>" class="page-button">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                            <a href="<?php echo $base_url; ?>page=<?php echo $total_pages; ?>" class="page-button">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="page-info">
+                        Page <?php echo $page; ?> of <?php echo $total_pages; ?>
+                    </div>
                 </div>
-
-                <div class="page-info">
-                    Page <?php echo $page; ?> of <?php echo $total_pages; ?>
-                </div>
-            </div>
             <?php endif; ?>
         </div>
     </div>
@@ -331,77 +333,77 @@ require_once '../includes/header.php';
 <div id="notification-container"></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Toggle sidebar
-    const toggleBtn = document.getElementById('toggle-sidebar');
-    const sidebar = document.getElementById('admin-sidebar');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle sidebar
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const sidebar = document.getElementById('admin-sidebar');
 
-    if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('active');
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+        }
+
+        // Update order status
+        const statusSelects = document.querySelectorAll('.update-status');
+
+        statusSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                const orderId = this.getAttribute('data-order-id');
+                const newStatus = this.value;
+
+                // Send AJAX request to update status
+                fetch('/admin/orders.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'update_status',
+                            order_id: orderId,
+                            status: newStatus
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Order status updated successfully', 'success');
+                        } else {
+                            showNotification('Error updating order status', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Failed to update order status', 'error');
+                    });
+            });
         });
-    }
 
-    // Update order status
-    const statusSelects = document.querySelectorAll('.update-status');
+        // Function to show notifications
+        function showNotification(message, type) {
+            const container = document.getElementById('notification-container');
 
-    statusSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            const orderId = this.getAttribute('data-order-id');
-            const newStatus = this.value;
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
 
-            // Send AJAX request to update status
-            fetch('/admin/orders.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'update_status',
-                        order_id: orderId,
-                        status: newStatus
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showNotification('Order status updated successfully', 'success');
-                    } else {
-                        showNotification('Error updating order status', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Failed to update order status', 'error');
-                });
-        });
-    });
+            container.appendChild(notification);
 
-    // Function to show notifications
-    function showNotification(message, type) {
-        const container = document.getElementById('notification-container');
-
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-
-        container.appendChild(notification);
-
-        // Auto-remove notification after 3 seconds
-        setTimeout(() => {
-            notification.classList.add('fade-out');
+            // Auto-remove notification after 3 seconds
             setTimeout(() => {
-                notification.remove();
-            }, 500);
-        }, 3000);
-    }
+                notification.classList.add('fade-out');
+                setTimeout(() => {
+                    notification.remove();
+                }, 500);
+            }, 3000);
+        }
 
-    // Function to print invoice (placeholder)
-    window.printInvoice = function(orderId) {
-        // In a real application, this would open a print-friendly page or generate a PDF
-        window.open(`order-invoice.php?id=${orderId}`, '_blank');
-    };
-});
+        // Function to print invoice (placeholder)
+        window.printInvoice = function(orderId) {
+            // In a real application, this would open a print-friendly page or generate a PDF
+            window.open(`order-invoice.php?id=${orderId}`, '_blank');
+        };
+    });
 </script>
 
 <?php require_once '../includes/footer.php'; ?>

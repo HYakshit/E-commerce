@@ -1,4 +1,63 @@
 document.addEventListener("DOMContentLoaded", function () {
+  function formatPrice(amount) {
+    return "$" + Number(amount || 0).toFixed(2);
+  }
+
+  function updateCartCount(count) {
+    const cartCountElement = document.querySelector(".cart-count");
+    if (cartCountElement && count !== undefined) {
+      cartCountElement.textContent = count;
+    }
+  }
+
+  function refreshOrderSummary(data) {
+    const summaryListElement = document.getElementById("summary-product-list");
+    const subtotalElement = document.getElementById("cart-subtotal");
+    const cartTotalElement = document.getElementById("cart-total");
+    const discountRowElement = document.getElementById("discount-row");
+    const discountLabelElement = document.getElementById("discount-label");
+    const discountAmountElement = document.getElementById("discount-amount");
+    const couponActionsElement = document.getElementById("coupon-actions");
+    const couponFormWrapperElement =
+      document.getElementById("coupon-form-wrapper");
+
+    if (summaryListElement && data.summary_items_html !== undefined) {
+      summaryListElement.innerHTML = data.summary_items_html;
+    }
+
+    if (subtotalElement && data.subtotal !== undefined) {
+      subtotalElement.textContent = formatPrice(data.subtotal);
+    }
+
+    if (cartTotalElement && data.cart_total !== undefined) {
+      cartTotalElement.textContent = formatPrice(data.cart_total);
+    }
+
+    if (discountRowElement && discountLabelElement && discountAmountElement) {
+      if (data.has_coupon) {
+        discountRowElement.style.display = "flex";
+        discountLabelElement.textContent = data.coupon_code
+          ? `Discount (${data.coupon_code})`
+          : "Discount";
+        discountAmountElement.textContent = "-" + formatPrice(data.discount);
+      } else {
+        discountRowElement.style.display = "none";
+        discountLabelElement.textContent = "Discount";
+        discountAmountElement.textContent = "-" + formatPrice(0);
+      }
+    }
+
+    if (couponActionsElement) {
+      couponActionsElement.style.display = data.has_coupon ? "block" : "none";
+    }
+
+    if (couponFormWrapperElement) {
+      couponFormWrapperElement.style.display = data.has_coupon
+        ? "none"
+        : "block";
+    }
+  }
+
   // Cart quantity update
   const quantityInputs = document.querySelectorAll(".item-quantity");
 
@@ -10,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let value = parseInt(input.value);
         if (value > 1) {
           input.value = value - 1;
-          updateCartItem(input);
+          handleQuantityChange(input);
         }
       });
     }
@@ -20,27 +79,52 @@ document.addEventListener("DOMContentLoaded", function () {
     if (incBtn && incBtn.classList.contains("quantity-btn")) {
       incBtn.addEventListener("click", function () {
         let value = parseInt(input.value);
-        input.value = value + 1;
-        updateCartItem(input);
+        const max = parseInt(input.getAttribute("max"));
+
+        if (!isNaN(max) && value >= max) {
+          input.value = max;
+        } else {
+          input.value = value + 1;
+        }
+
+        handleQuantityChange(input);
       });
     }
 
     // Update on input change
     input.addEventListener("change", function () {
       let value = parseInt(this.value);
+      const max = parseInt(this.getAttribute("max"));
+
       if (isNaN(value) || value < 1) {
         this.value = 1;
         value = 1;
       }
-      updateCartItem(this);
+
+      if (!isNaN(max) && value > max) {
+        this.value = max;
+      }
+
+      handleQuantityChange(this);
     });
   });
 
-  // Function to update cart item quantity via AJAX
-  function updateCartItem(input) {
+  function handleQuantityChange(input) {
     const productId = input.getAttribute("data-product-id");
-    const quantity = parseInt(input.value);
     const cartRow = input.closest(".cart-item");
+
+    // Product details pages reuse the same quantity UI, but they are not
+    // cart rows and should not trigger cart update AJAX calls.
+    if (!productId || !cartRow) {
+      return;
+    }
+
+    updateCartItem(input, cartRow, productId);
+  }
+
+  // Function to update cart item quantity via AJAX
+  function updateCartItem(input, cartRow, productId) {
+    const quantity = parseInt(input.value);
 
     fetch("/cart.php", {
       method: "POST",
@@ -63,20 +147,11 @@ document.addEventListener("DOMContentLoaded", function () {
           if (priceElement && itemTotalElement) {
             const price = parseFloat(priceElement.getAttribute("data-price"));
             const itemTotal = price * quantity;
-            itemTotalElement.textContent = "$" + itemTotal.toFixed(2);
+            itemTotalElement.textContent = formatPrice(itemTotal);
           }
 
-          // Update cart total
-          const cartTotalElement = document.getElementById("cart-total");
-          if (cartTotalElement && data.cart_total) {
-            cartTotalElement.textContent = "$" + data.cart_total.toFixed(2);
-          }
-
-          // Update cart count in navbar
-          const cartCountElement = document.querySelector(".cart-count");
-          if (cartCountElement && data.cart_count !== undefined) {
-            cartCountElement.textContent = data.cart_count;
-          }
+          refreshOrderSummary(data);
+          updateCartCount(data.cart_count);
         } else {
           showMessage("Error updating cart", "error");
           // Reset input to previous value if needed
@@ -86,18 +161,6 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Error:", error);
         showMessage("Failed to update cart", "error");
       });
-  }
-  function UpdateCart() {
-    // Update cart count in navbar
-    const cartCountElement = document.querySelector(".cart-count");
-    if (cartCountElement && data.cart_count !== undefined) {
-      cartCountElement.textContent = data.cart_count;
-    }
-  }
-  // Update cart count in navbar
-  const cartCountElement = document.querySelector(".cart-count");
-  if (cartCountElement && data.cart_count !== undefined) {
-    cartCountElement.textContent = data.cart_count;
   }
 
   // Remove item from cart
@@ -129,21 +192,13 @@ document.addEventListener("DOMContentLoaded", function () {
               // Remove item from DOM
               cartItem.remove();
 
-              // Update cart total
-              const cartTotalElement = document.getElementById("cart-total");
-              if (cartTotalElement && data.cart_total) {
-                cartTotalElement.textContent = "$" + data.cart_total.toFixed(2);
-              }
-
-              // Update cart count in navbar
-              const cartCountElement = document.querySelector(".cart-count");
-              if (cartCountElement && data.cart_count !== undefined) {
-                cartCountElement.textContent = data.cart_count;
-              }
+              refreshOrderSummary(data);
+              updateCartCount(data.cart_count);
 
               // Show empty cart message if cart is empty
               if (data.cart_count === 0) {
                 const cartItems = document.querySelector(".cart-items");
+                const cartSummary = document.querySelector(".cart-summary");
                 const emptyCart = document.createElement("div");
                 emptyCart.classList.add("empty-cart");
                 emptyCart.innerHTML = `
@@ -154,10 +209,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 cartItems.innerHTML = "";
                 cartItems.appendChild(emptyCart);
 
-                // Hide checkout button
-                const checkoutBtn = document.querySelector(".checkout-btn");
-                if (checkoutBtn) {
-                  checkoutBtn.style.display = "none";
+                if (cartSummary) {
+                  cartSummary.innerHTML = `
+                    <h3 class="summary-title">Order Summary</h3>
+                    <p class="summary-empty">No products in your cart.</p>
+                  `;
                 }
               }
 
@@ -246,6 +302,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Apply coupon code
   const couponForm = document.getElementById("coupon-form");
+  const removeCouponBtn = document.getElementById("remove-coupon-btn");
 
   if (couponForm) {
     couponForm.addEventListener("submit", function (e) {
@@ -266,18 +323,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
-            // Update discount display
-            const discountElement = document.getElementById("discount-amount");
-            if (discountElement) {
-              discountElement.textContent = "-$" + data.discount.toFixed(2);
-              discountElement.closest(".summary-row").style.display = "flex";
-            }
-
-            // Update total
-            const cartTotalElement = document.getElementById("cart-total");
-            if (cartTotalElement && data.cart_total) {
-              cartTotalElement.textContent = "$" + data.cart_total.toFixed(2);
-            }
+            refreshOrderSummary(data);
 
             showMessage(
               data.message || "Coupon applied successfully",
@@ -290,6 +336,42 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch((error) => {
           console.error("Error:", error);
           showMessage("Failed to apply coupon", "error");
+        });
+    });
+  }
+
+  if (removeCouponBtn) {
+    removeCouponBtn.addEventListener("click", function () {
+      fetch("/cart.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "remove_coupon",
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            refreshOrderSummary(data);
+
+            const couponInput = document.getElementById("coupon_code");
+            if (couponInput) {
+              couponInput.value = "";
+            }
+
+            showMessage(
+              data.message || "Coupon removed successfully",
+              "success"
+            );
+          } else {
+            showMessage(data.message || "Failed to remove coupon", "error");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          showMessage("Failed to remove coupon", "error");
         });
     });
   }
