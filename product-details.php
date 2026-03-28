@@ -35,6 +35,7 @@ $related_products = $stmt->fetchAll();
 
 $page_title = $product['name'];
 $page_script = "/js/cart.js";
+$is_product_available = isProductAvailableForPurchase($product);
 require_once 'includes/header.php';
 ?>
 
@@ -73,7 +74,7 @@ require_once 'includes/header.php';
                 <div class="product-meta">
                     <span
                         class="badge badge-primary"><?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?></span>
-                    <?php if ($product['in_stock']): ?>
+                    <?php if ($is_product_available): ?>
                     <span class="badge badge-success">In Stock</span>
                     <?php else: ?>
                     <span class="badge badge-danger">Out of Stock</span>
@@ -108,7 +109,7 @@ require_once 'includes/header.php';
                     <?php echo $product['description']; ?>
                 </div>
 
-                <?php if ($product['in_stock']): ?>
+                <?php if ($is_product_available): ?>
                 <form id="add-to-cart-form" action="cart.php" method="POST">
                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                     <input type="hidden" name="action" value="add_to_cart">
@@ -117,7 +118,7 @@ require_once 'includes/header.php';
                         <div class="quantity-input">
                             <button type="button" class="quantity-btn">-</button>
                             <input class="item-quantity" type="number" name="quantity" value="1" min="1"
-                                max="<?php echo $product['stock_quantity']; ?>">
+                                max="<?php echo (int) $product['stock_quantity']; ?>">
                             <button type="button" class="quantity-btn">+</button>
                         </div>
                         <button type="submit" class="btn btn-primary btn-lg add-to-cart-btn">Add to Cart</button>
@@ -189,16 +190,19 @@ require_once 'includes/header.php';
                         <div class="product-price"><?php echo formatPrice($rel_product['price']); ?></div>
                     </div>
                     <div class="product-footer">
+                        <?php if (isProductAvailableForPurchase($rel_product)): ?>
                         <form action="cart.php" method="POST" class="add-to-cart">
                             <input type="hidden" name="product_id" value="<?php echo $rel_product['id']; ?>">
                             <input type="hidden" name="action" value="add_to_cart">
                             <button type="submit" class="btn btn-primary btn-sm btn-block">Add to Cart</button>
-                            <div class="text-center mt-1"> <a
-                                    href="product-details.php?id=<?php echo $product['id']; ?>"
-                                    class="btn btn-outline-secondary">View
-                                    details</a></div>
                         </form>
-
+                        <?php else: ?>
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-block" disabled>Out of Stock</button>
+                        <?php endif; ?>
+                        <div class="text-center mt-1"> <a
+                                href="product-details.php?id=<?php echo $rel_product['id']; ?>"
+                                class="btn btn-outline-secondary">View
+                                details</a></div>
                     </div>
                 </div>
                 <?php endforeach; ?>

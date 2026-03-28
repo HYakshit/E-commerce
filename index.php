@@ -69,11 +69,15 @@ require_once 'includes/header.php';
                         </div>
                         <h5 class="card-title mb-3"><?php echo htmlspecialchars($product['name']); ?></h5>
                         <div class="mt-auto pt-3 d-grid gap-2">
+                            <?php if (isProductAvailableForPurchase($product)): ?>
                             <form action="cart.php" method="POST">
                                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                 <input type="hidden" name="action" value="add_to_cart">
                                 <button type="submit" class="btn btn-primary w-100">Add to Cart</button>
                             </form>
+                            <?php else: ?>
+                            <button type="button" class="btn btn-outline-secondary w-100" disabled>Out of Stock</button>
+                            <?php endif; ?>
                             <a href="product-details.php?id=<?php echo $product['id']; ?>"
                                 class="btn btn-outline-secondary">View Details</a>
                         </div>
@@ -147,11 +151,15 @@ require_once 'includes/header.php';
                         </div>
                         <h5 class="card-title mb-3"><?php echo htmlspecialchars($product['name']); ?></h5>
                         <div class="mt-auto pt-3 d-grid gap-2">
+                            <?php if (isProductAvailableForPurchase($product)): ?>
                             <form action="cart.php" method="POST">
                                 <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                 <input type="hidden" name="action" value="add_to_cart">
                                 <button type="submit" class="btn btn-primary w-100">Add to Cart</button>
                             </form>
+                            <?php else: ?>
+                            <button type="button" class="btn btn-outline-secondary w-100" disabled>Out of Stock</button>
+                            <?php endif; ?>
                             <a href="product-details.php?id=<?php echo $product['id']; ?>"
                                 class="btn btn-outline-secondary">View Details</a>
                         </div>

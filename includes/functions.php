@@ -33,6 +33,18 @@ function formatPrice($price)
 {
     return '₹' . number_format($price, 2);
 }
+
+function isProductAvailableForPurchase($product)
+{
+    if (!is_array($product)) {
+        return false;
+    }
+
+    $has_stock = isset($product['stock_quantity']) && (int) $product['stock_quantity'] > 0;
+    $is_in_stock = !empty($product['in_stock']);
+
+    return $has_stock && $is_in_stock;
+}
 // Sanitize input
 function sanitizeInput($data)
 {
@@ -69,19 +81,31 @@ function initCart()
 function addToCart($product_id, $conn, $quantity = 1)
 {
     initCart();
+    $quantity = (int) $quantity;
+
+    if ($quantity < 1) {
+        return false;
+    }
 
     // Get product information
     $stmt = $conn->prepare("SELECT * FROM products WHERE id = ?");
     $stmt->execute([$product_id]);
     $product = $stmt->fetch();
 
-    if (!$product) {
+    if (!$product || !isProductAvailableForPurchase($product)) {
+        return false;
+    }
+
+    $current_quantity = isset($_SESSION['cart'][$product_id]) ? (int) $_SESSION['cart'][$product_id]['quantity'] : 0;
+    $new_quantity = $current_quantity + $quantity;
+
+    if ($new_quantity > (int) $product['stock_quantity']) {
         return false;
     }
 
     // Check if product already in cart
     if (isset($_SESSION['cart'][$product_id])) {
-        $_SESSION['cart'][$product_id]['quantity'] += $quantity;
+        $_SESSION['cart'][$product_id]['quantity'] = $new_quantity;
     } else {
         $_SESSION['cart'][$product_id] = [
             'id' => $product_id,

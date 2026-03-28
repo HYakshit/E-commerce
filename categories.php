@@ -123,16 +123,19 @@ require_once 'includes/header.php';
                                     <div class="product-price"><?php echo formatPrice($product['price']); ?></div>
                                 </div>
                                 <div class="product-footer">
+                                    <?php if (isProductAvailableForPurchase($product)): ?>
                                     <form action="cart.php" method="POST" class="add-to-cart">
                                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                         <input type="hidden" name="action" value="add_to_cart">
                                         <button type="submit" class="btn btn-primary btn-sm btn-block">Add to Cart</button>
-                                        <div class="text-center mt-1"> <a
-                                                href="product-details.php?id=<?php echo $product['id']; ?>"
-                                                class="btn btn-outline-secondary">View
-                                                details</a></div>
                                     </form>
-
+                                    <?php else: ?>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-block" disabled>Out of Stock</button>
+                                    <?php endif; ?>
+                                    <div class="text-center mt-1"> <a
+                                            href="product-details.php?id=<?php echo $product['id']; ?>"
+                                            class="btn btn-outline-secondary">View
+                                            details</a></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
